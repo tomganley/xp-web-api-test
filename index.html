@@ -57,22 +57,22 @@
 		var qs = location.search.substr(1);
 		var qd = {};
 		qs.split("&").forEach(function(item) {
-		    var s = item.split("="),
-		        k = s[0],
-		        v = s[1] && decodeURIComponent(s[1]);		
-		    (qd[k] = qd[k] || []).push(v); //short-circuit
+			var s = item.split("="),
+				k = s[0],
+				v = s[1] && decodeURIComponent(s[1]);		
+			(qd[k] = qd[k] || []).push(v); //short-circuit
 		})
 		return qd;
 	}
 	
 	function showModal() {
 		modal.style.visibility = 'visible';
-	    modal.style.opacity = 1;
+		modal.style.opacity = 1;
 	}
 	
 	function hideModal() {
 		modal.style.visibility = 'hidden';
-	    modal.style.opacity = 0;
+		modal.style.opacity = 0;
 	}
 	
 	function checkResponse() {
@@ -96,9 +96,9 @@
 			hideModal();
 		}	  
 		window.onclick = function(event) {
-		    if (event.target == modal) {
+			if (event.target == modal) {
 				hideModal();
-		    }
+			}
 		}
 	}
 	
@@ -107,40 +107,89 @@
 	}  
 	
 	function getNow() {
-	    var date = new Date();
+		var date = new Date();
 
-	    var month = date.getMonth() + 1;
-	    var day = date.getDate();
-	    var hour = date.getHours();
-	    var min = date.getMinutes();
-	    var sec = date.getSeconds();
+		var month = date.getMonth() + 1;
+		var day = date.getDate();
+		var hour = date.getHours();
+		var min = date.getMinutes();
+		var sec = date.getSeconds();
 
-	    month = (month < 10 ? "0" : "") + month;
-	    day = (day < 10 ? "0" : "") + day;
-	    hour = (hour < 10 ? "0" : "") + hour;
-	    min = (min < 10 ? "0" : "") + min;
-	    sec = (sec < 10 ? "0" : "") + sec;
+		month = (month < 10 ? "0" : "") + month;
+		day = (day < 10 ? "0" : "") + day;
+		hour = (hour < 10 ? "0" : "") + hour;
+		min = (min < 10 ? "0" : "") + min;
+		sec = (sec < 10 ? "0" : "") + sec;
 
-	    return date.getFullYear() + "-" + month + "-" + day + " @ " +  hour + ":" + min + ":" + sec;
+		return date.getFullYear() + "-" + month + "-" + day + " @ " +  hour + ":" + min + ":" + sec;
 	}
 
 	function generateLink(form) {
 		var target = 'square-commerce-v1://payment/create?data=';
 
-	 	var dataParameter = {
-		  "amount_money": {
-		    "amount" : "500",
-		    "currency_code" : "USD"
-		  },
-		  "callback_url" : "https://ios-web-api-test.herokuapp.com/index.html", // Replace this value with your application's callback URL
-		  "version": "1.2",
-		  "client_id": "sq0ids-8UjZxrQoAbC3N56CcJo_CQ",
-		  "notes": "notes for the transaction",
-		  "state": "Pennsyltucky",
-		  "options" : {
-		    "supported_tender_types" : ["CREDIT_CARD","CASH","OTHER","SQUARE_GIFT_CARD","CARD_ON_FILE"]
-		  }
-		};
+		var dataParameter = {};
+
+		if(notBlank(form.elements['web-callback-url'].value)) {
+			dataParameter.callback_url = form.elements['web-callback-url'].value;
+		}
+
+		if(notBlank(form.elements['client-id'].value)) {
+			dataParameter.client_id = form.elements['client-id'].value;
+		}
+
+		if(notBlank(form.elements['api-version'].value)) {
+			dataParameter.version = form.elements['api-version'].value;
+		}
+
+		var amount_money = {}
+		if(notBlank(form.elements['total-amount'].value)) {
+			amount_money.amount = form.elements['total-amount'].value;
+		}
+
+		if(notBlank(form.elements['currency-code'].value)) {
+			amount_money.currency_code = form.elements['currency-code'].value;
+		}
+
+		dataParameter.amount_money = amount_money;
+
+		if(notBlank(form.elements['note'].value)) {
+			dataParameter.notes = form.elements['note'].value;
+		}
+	
+		options = {};
+
+		var all_tender_types = form.elements['tender-types'];
+		console.log("All tender types:" + all_tender_types);
+		var selected_tender_types = [];
+		for (var i = 0; i < all_tender_types.length; i++) {
+			console.log("Tender type " + i + ": " + all_tender_types[i].value);
+			if (all_tender_types[i].checked) {
+				selected_tender_types[selected_tender_types.length] = all_tender_types[i].value;
+			}
+		}
+
+		options.supported_tender_types = selected_tender_types;
+
+		var all_options = form.elements['options'];
+		for (var i = 0; i < all_options.length; i++) {
+			if (all_options[i].checked) {
+				options[all_options[i].value] = true;
+			}
+		}
+
+		dataParameter.options = options;
+
+		if(notBlank(form.elements['state'].value)) {
+			dataParameter.state = form.elements['state'].value;
+		}
+
+		if(notBlank(form.elements['location-id'].value)) {
+			dataParameter.merchant_id = form.elements['location-id'].value;
+		}
+
+		if(notBlank(form.elements['customer-id'].value)) {
+			dataParameter.customer_id = form.elements['customer-id'].value;
+		}
 
 		target += encodeURIComponent(JSON.stringify(dataParameter));
 
@@ -154,65 +203,62 @@
   <form class="pure-form pure-form-aligned">
 	  <fieldset>
 		<div class="pure-control-group">
-            <label for="total-amount">Transaction Amount (cents)</label>
-            <input id="total-amount" type="text" value="100" class="pure-input-2-3">
-	    </div>
+			<label for="total-amount">Transaction Amount (cents)</label>
+			<input id="total-amount" type="text" value="100" class="pure-input-2-3">
+		</div>
 		<div class="pure-control-group">	
-	       <label for="currency-code">Currency Code</label>
-	       <input id="currency-code" type="text" value="USD" class="pure-input-2-3">
-        </div>
+		   <label for="currency-code">Currency Code</label>
+		   <input id="currency-code" type="text" value="USD" class="pure-input-2-3">
+		</div>
 		<div class="pure-control-group">	
-	       <label for="note">Note (optional)</label>
-	       <input id="note" type="text" value="Moar Gravy please." class="pure-input-2-3">
+		   <label for="note">Note (optional)</label>
+		   <input id="note" type="text" value="Moar Gravy please." class="pure-input-2-3">
 		</div>
 		<div class="pure-controls">
 			Tender Types<br/>
 			<label for="tt-card" class="pure-checkbox">
-   				<input id="tt-card" type="checkbox" name="tender-types" value="com.squareup.register.TENDER_CARD" checked>&nbsp;Card
-	    	</label>
+				<input id="tt-card" type="checkbox" name="tender-types" value="CREDIT_CARD" checked>&nbsp;Credit Card
+			</label>
 			<label for="tt-cof" class="pure-checkbox">
-				<input id="tt-cof" type="checkbox" name="tender-types" value="com.squareup.register.TENDER_CARD_ON_FILE" checked>&nbsp;Card On File
-	    	</label>
+				<input id="tt-cof" type="checkbox" name="tender-types" value="CARD_ON_FILE" checked>&nbsp;Card On File
+			</label>
 			<label for="tt-cash" class="pure-checkbox">
-				<input id="tt-cash" type="checkbox" name="tender-types" value="com.squareup.register.TENDER_CASH" checked>&nbsp;Cash
-	    	</label>
+				<input id="tt-cash" type="checkbox" name="tender-types" value="CASH" checked>&nbsp;Cash
+			</label>
 			<label for="tt-other" class="pure-checkbox">
-				<input id="tt-other" type="checkbox" name="tender-types" value="com.squareup.register.TENDER_OTHER" checked>&nbsp;Other
-	    	</label>
+				<input id="tt-other" type="checkbox" name="tender-types" value="OTHER" checked>&nbsp;Other
+			</label>
+			<label for="tt-gift-card" class="pure-checkbox">
+				<input id="tt-gift-card" type="checkbox" name="tender-types" value="SQUARE_GIFT_CARD" checked>&nbsp;Square Gift Card
+			</label>
 		</div>
 		<div class="pure-control-group">	
 			<label for="client-id">Client ID</label>
-			<input id="client-id" type="text" value="sq0ids-BaGKtUquXaOF8ueABLkfwA" class="pure-input-2-3">
+			<input id="client-id" type="text" value="sq0ids-8UjZxrQoAbC3N56CcJo_CQ" class="pure-input-2-3"> <!-- Default: CafAPI Staging -->
 		</div>	
 		<div class="pure-control-group">	
-			<label for="browser-fallback-url">Browser Fallback URL</label>
-			<input id="browser-fallback-url" type="text" value="https://pages.corp.squareup.com/pages/XP/web-api-test/master/browse/v1.3/index.html" class="pure-input-2-3">
-		</div>
-		<div class="pure-control-group">	
-			<label for="web-callback-uri">Web Callback URI</label>
-			<input id="web-callback-uri" type="text" value="https://pages.corp.squareup.com/pages/XP/web-api-test/master/browse/v1.3/index.html" class="pure-input-2-3">
-		</div>
-		<div class="pure-control-group">	
-			<label for="package">Package</label>
-			<select name="package" class="pure-input-2-3">
-				<option value="com.squareup">com.squareup</option>
-				<option value="com.squareup.eng">com.squareup.eng</option>
-				<option value="com.squareup.development">com.squareup.development</option>
-				<option value="com.squareup.beta">com.squareup.beta</option>
-				<option value="">[no package]</option>
-			</select>
-		</div>		
+			<label for="web-callback-url">Web Callback URL</label>
+			<input id="web-callback-url" type="text" value="https://ios-web-api-test.herokuapp.com/index.html" class="pure-input-2-3">
+		</div>	
 		<div class="pure-control-group">	
 			<label for="api-version">API Version</label>
-			<input id="api-version" type="text" value="v1.3" class="pure-input-2-3">
+			<input id="api-version" type="text" value="1.2" class="pure-input-2-3">
 		</div>		
-		<div class="pure-control-group">	
-			<label for="auto-return-timeout">Auto Return Timeout (optional, in millis)</label>
-			<input id="auto-return-timeout" type="text" value="" class="pure-input-2-3">
+		<div class="pure-controls">
+			Options<br/>
+			<label for="options-fees" class="pure-checkbox">
+				<input id="options-fees" type="checkbox" name="options" value="clear_default_fees" checked>&nbsp;Clear Default Fees
+			</label>
+			<label for="options-autoreturn" class="pure-checkbox">
+				<input id="options-autoreturn" type="checkbox" name="options" value="auto_return" checked>&nbsp;Auto-Return
+			</label>
+			<label for="options-receipt" class="pure-checkbox">
+				<input id="options-receipt" type="checkbox" name="options" value="skip_receipt" checked>&nbsp;Skip Receipt
+			</label>
 		</div>
 		<div class="pure-control-group">	
-			<label for="request-metadata">Request Metadata</label>
-			<input id="request-metadata" type="text" value="fries-against-humanity" class="pure-input-2-3">
+			<label for="state">State</label>
+			<input id="state" type="text" value="fries-against-humanity" class="pure-input-2-3">
 		</div>
 		<div class="pure-control-group">	
 			<label for="location-id">Location ID (optional)</label>
