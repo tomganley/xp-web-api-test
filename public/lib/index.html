@@ -1,0 +1,190 @@
+<html>
+ <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/pure/0.6.0/pure-min.css">
+	<style>
+	input[type=text] {
+	  font-size: 14px;
+	}
+	.overlay {
+	  position: fixed;
+	  top: 0;
+	  bottom: 0;
+	  left: 0;
+	  right: 0;
+	  background: rgba(0, 0, 0, 0.7);
+	  transition: opacity 500ms;
+	  visibility: hidden;
+	  opacity: 0;
+	}
+	.popup {
+	  margin: 70px auto;
+	  padding: 20px;
+	  background: #fff;
+	  border-radius: 5px;
+	  width: 70%;
+	  position: relative;
+	  transition: all 5s ease-in-out;
+	}
+	.popup h3 {
+	  margin-top: 0;
+	  color: #333;
+	  font-family: Tahoma, Arial, sans-serif;
+	}
+	.popup .close {
+	  position: absolute;
+	  top: 15px;
+	  right: 15px;
+	  transition: all 200ms;
+	  font-size: 15px;
+	  font-weight: bold;
+	  text-decoration: none;
+	  color: #333;
+	}
+	.popup .close:hover {
+	  color: #06D85F;
+	}
+	.popup .content {
+	  max-height: 50%;
+	  overflow: auto;
+	  font-size: 12px;
+	}
+	</style>
+	<script>
+	function parseResponse() {
+		var qs = location.search.substr(1);
+		var qd = {};
+		qs.split("&").forEach(function(item) {
+		    var s = item.split("="),
+		        k = s[0],
+		        v = s[1] && decodeURIComponent(s[1]);		
+		    (qd[k] = qd[k] || []).push(v); //short-circuit
+		})
+		return qd;
+	}
+	
+	function showModal() {
+		modal.style.visibility = 'visible';
+	    modal.style.opacity = 1;
+	}
+	
+	function hideModal() {
+		modal.style.visibility = 'hidden';
+	    modal.style.opacity = 0;
+	}
+	
+	function checkResponse() {
+		var maybeResponse = parseResponse();
+		var display = '';
+		for (var key in maybeResponse) {
+			if(!notBlank(key)) {
+				continue;
+			}
+			display += key + '<br/>';
+			display += '-> ' + maybeResponse[key] + '<br/><br/>';		    
+		}
+		if (!notBlank(display)) {
+			return;
+		}
+		title.innerHTML = 'Web API Response';
+		content.innerHTML = display;
+		showModal();
+
+		close.onclick = function() {
+			hideModal();
+		}	  
+		window.onclick = function(event) {
+		    if (event.target == modal) {
+				hideModal();
+		    }
+		}
+	}
+	
+	function notBlank(str) {
+		return str != null && str.trim() != '';
+	}  
+	
+	function getNow() {
+	    var date = new Date();
+
+	    var month = date.getMonth() + 1;
+	    var day = date.getDate();
+	    var hour = date.getHours();
+	    var min = date.getMinutes();
+	    var sec = date.getSeconds();
+
+	    month = (month < 10 ? "0" : "") + month;
+	    day = (day < 10 ? "0" : "") + day;
+	    hour = (hour < 10 ? "0" : "") + hour;
+	    min = (min < 10 ? "0" : "") + min;
+	    sec = (sec < 10 ? "0" : "") + sec;
+
+	    return date.getFullYear() + "-" + month + "-" + day + " @ " +  hour + ":" + min + ":" + sec;
+	}
+
+
+	function runCode(form) {
+		eval(form.elements['code'].value)
+	}
+	</script>
+ </head>	
+ <body width="100%" onload="checkResponse();">
+  <form class="pure-form pure-form-aligned">
+	  <fieldset>
+		<div class="pure-control-group">	
+			<textarea id="code" rows="30" placeholder="Type some JS" class="pure-input-1">				
+var fallbackUrl = 'https://posweb.herokuapp.com/lib/index.html'
+var webCallbackUri = 'https://posweb.herokuapp.com/lib/index.html'
+var clientId = 'sq0idp-BEJuCgeHbqxou1Vw5YhtOw'
+
+var totalAmount = '100'
+var currencyCode = 'USD'
+var note = 'Moar Gravy please.'
+var state = 'fries-against-humanity'
+var locationId = ''
+var customerId = ''
+
+var selectedTenderTypes = [];
+
+// Allow Magstripe cards, Chip Cards, Keyed-In Cards, Contactless (NFC) Payments, Square
+// Prepaid Gift Cards.
+selectedTenderTypes[0] = 'CARD'
+// Allow Card On File transactions.
+selectedTenderTypes[1] = 'CARD_ON_FILE'
+// Allow Cash transactions. Useful to keep all payment records in one place.
+selectedTenderTypes[2] = 'CASH'
+// Allow Check, Third-Party Gift Cards, and Other Tender transactions. Useful to keep all
+// payment records in one place.
+selectedTenderTypes[3] = 'OTHER'
+
+var target = createPosApiUrl(fallbackUrl, webCallbackUri, clientId, totalAmount, note, state, locationId, customerId, selectedTenderTypes, currencyCode)
+
+// Update page
+document.getElementById('gen-link-layout').style.visibility = 'visible';
+document.getElementById('gen-link').href = target;
+document.getElementById('gen-timestamp').innerHTML = getNow();</textarea>
+		</div>
+	  </fieldset>
+	  <button onclick="runCode(this.form); return false;" class="pure-button pure-input-1 pure-button-primary">Run Code</button>
+  </form>
+  <div id="gen-link-layout" style="visibility:hidden;text-align:center">Link generated at <span id="gen-timestamp"></span>
+  <p><a id="gen-link">Click me to launch Web API!</a></p>
+  </div>
+
+<div id="popup-container" class="overlay">
+	<div class="popup">
+		<h3 id="popup-title">Here i am</h2>
+		<span id="close" class="close">&times;</span>
+		<div id="popup-content" class="content"></div>
+	</div>
+</div>
+<script src="posapi.js"></script>
+<script>
+var modal = document.getElementById('popup-container');
+var title = document.getElementById('popup-title');
+var content = document.getElementById('popup-content');
+var close = document.getElementById('close');
+</script>
+  </body>
+</html>
