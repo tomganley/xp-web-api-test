@@ -178,27 +178,27 @@
 			}
 
 			if(notBlank(form.elements['web-callback-uri'].value)) {
-				target += 'S.com.squareup.pos.WEB_CALLBACK_URI=' + form.elements['web-callback-uri'].value + ';';
+				target += 'S.callback_url=' + form.elements['web-callback-uri'].value + ';';
 			}
 
 			if(notBlank(form.elements['client-id'].value)) {
-				target += 'S.com.squareup.pos.CLIENT_ID=' + form.elements['client-id'].value + ';';
+				target += 'S.client_id=' + form.elements['client-id'].value + ';';
 			}
 
 			if(notBlank(form.elements['api-version'].value)) {
-				target += 'S.com.squareup.pos.API_VERSION=' + form.elements['api-version'].value + ';';
+				target += 'S.api_version=' + form.elements['api-version'].value + ';';
 			}
 
 			if(notBlank(form.elements['total-amount'].value)) {
-				target += 'i.com.squareup.pos.TOTAL_AMOUNT=' + form.elements['total-amount'].value + ';';
+				target += 'i.amount=' + form.elements['total-amount'].value + ';';
 			}
 
 			if(notBlank(form.elements['currency-code'].value)) {
-				target += 'S.com.squareup.pos.CURRENCY_CODE=' + form.elements['currency-code'].value + ';';
+				target += 'S.currency_code=' + form.elements['currency-code'].value + ';';
 			}
 
 			if(notBlank(form.elements['note'].value)) {
-				target += 'S.com.squareup.pos.NOTE=' + form.elements['note'].value + ';';
+				target += 'S.note=' + form.elements['note'].value + ';';
 			}
 
 			var all_tender_types = form.elements['tender-types'];
@@ -209,26 +209,26 @@
 				}
 			}
 			if (selected_tender_types.length != 0) {
-				target += 'S.com.squareup.pos.TENDER_TYPES=' + selected_tender_types.join() + ';';
+				target += 'S.tender_types=' + selected_tender_types.join() + ';';
 			}
 
 			if (form.elements['full-response'].checked) {
-				target += "B.full_response=true;"
+				target += "B.full_response=true;";
 			}
-			if(notBlank(form.elements['auto-return-timeout'].value)) {
-				target += 'S.com.squareup.pos.AUTO_RETURN_TIMEOUT_MS=' + form.elements['auto-return-timeout'].value + ';';
+			if(form.elements['auto-return'].checked) {
+				target += 'B.auto_return=true;';
 			}
 
-			if(notBlank(form.elements['request-metadata'].value)) {
-				target += 'S.com.squareup.pos.REQUEST_METADATA=' + form.elements['request-metadata'].value + ';';
+			if(notBlank(form.elements['state'].value)) {
+				target += 'S.state=' + form.elements['state'].value + ';';
 			}
 
 			if(notBlank(form.elements['location-id'].value)) {
-				target += 'S.com.squareup.pos.LOCATION_ID=' + form.elements['location-id'].value + ';';
+				target += 'S.location_id=' + form.elements['location-id'].value + ';';
 			}
 
 			if(notBlank(form.elements['customer-id'].value)) {
-				target += 'S.com.squareup.pos.CUSTOMER_ID=' + form.elements['customer-id'].value + ';';
+				target += 'S.customer_id=' + form.elements['customer-id'].value + ';';
 			}
 
 			target += 'end';
@@ -256,17 +256,23 @@
 			</div>
 			<div class="pure-controls">
 				Tender Types<br/>
-				<label for="tt-card" class="pure-checkbox">
-					<input id="tt-card" type="checkbox" name="tender-types" value="com.squareup.pos.TENDER_CARD" checked>&nbsp;Card
+				<label for="tt-card-from-reader" class="pure-checkbox">
+					<input id="tt-card-from-reader" type="checkbox" name="tender-types" value="card_from_reader" checked>&nbsp;Card From Reader
+				</label>
+				<label for="tt-keyed-in-card" class="pure-checkbox">
+					<input id="tt-keyed-in-card" type="checkbox" name="tender-types" value="keyed_in_card" checked>&nbsp;Keyed-in Card
+				</label>
+				<label for="tt-gift-card" class="pure-checkbox">
+					<input id="tt-gift-card" type="checkbox" name="tender-types" value="square_gift_card" checked>&nbsp;Square Gift Card
 				</label>
 				<label for="tt-cof" class="pure-checkbox">
-					<input id="tt-cof" type="checkbox" name="tender-types" value="com.squareup.pos.TENDER_CARD_ON_FILE" checked>&nbsp;Card On File
+					<input id="tt-cof" type="checkbox" name="tender-types" value="card_on_file" checked>&nbsp;Card On File
 				</label>
 				<label for="tt-cash" class="pure-checkbox">
-					<input id="tt-cash" type="checkbox" name="tender-types" value="com.squareup.pos.TENDER_CASH" checked>&nbsp;Cash
+					<input id="tt-cash" type="checkbox" name="tender-types" value="cash" checked>&nbsp;Cash
 				</label>
 				<label for="tt-other" class="pure-checkbox">
-					<input id="tt-other" type="checkbox" name="tender-types" value="com.squareup.pos.TENDER_OTHER" checked>&nbsp;Other
+					<input id="tt-other" type="checkbox" name="tender-types" value="other" checked>&nbsp;Other
 				</label>
 			</div>
 			<div class="pure-control-group">	
@@ -300,12 +306,12 @@
 				<input id="api-version" type="text" value="v3.0" class="pure-input-2-3">
 			</div>		
 			<div class="pure-control-group">	
-				<label for="auto-return-timeout">Auto Return Timeout (optional, in millis)</label>
-				<input id="auto-return-timeout" type="text" value="" class="pure-input-2-3">
+				<label for="auto-return">Enable Auto Return</label>
+				<input id="auto-return" type="checkbox" name="auto-return" checked>
 			</div>
 			<div class="pure-control-group">	
-				<label for="request-metadata">Request Metadata</label>
-				<input id="request-metadata" type="text" value="fries-against-humanity" class="pure-input-2-3">
+				<label for="state">State</label>
+				<input id="state" type="text" value="fries-against-humanity" class="pure-input-2-3">
 			</div>
 			<div class="pure-control-group">	
 				<label for="location-id">Location ID (optional)</label>
