@@ -109,35 +109,35 @@
 		function createTransactionResponseHtml(transactionData) {
 			var display = ''
 			display += 'Transaction Result<br/><br/>';
-			display += "clientId: " + transactionData.clientId + '<br/>'
-			display += "serverId: " + transactionData.serverId + '<br/>'
-			display += "locationId: " + transactionData.locationId + '<br/>'
-			display += "createdAt: "  + transactionData.createdAt + '<br/>'
+			display += "client_id: " + transactionData.client_id + '<br/>'
+			display += "server_id: " + transactionData.server_id + '<br/>'
+			display += "location_id: " + transactionData.location_id + '<br/>'
+			display += "created_at: "  + transactionData.created_at + '<br/>'
 			display += "order:" + '<br/>'
-			display += '&nbsp&nbsp' + "totalMoney: " + transactionData.order.totalMoney.amount + '<br/>'
-			display += '&nbsp&nbsp' + "totalTipMoney: " + transactionData.order.totalTipMoney.amount + '<br/>'
-			display += '&nbsp&nbsp' + "totalTaxMoney: " + transactionData.order.totalTaxMoney.amount + '<br/>'
+			display += '&nbsp&nbsp' + "total_money: " + transactionData.order.total_money.amount + '<br/>'
+			display += '&nbsp&nbsp' + "total_tip_money: " + transactionData.order.total_tip_money.amount + '<br/>'
+			display += '&nbsp&nbsp' + "total_tax_money: " + transactionData.order.total_tax_money.amount + '<br/>'
 			display += "tenders:" + '<br/>'
 
 			for (var index in transactionData.tenders) {
 				var tender = transactionData.tenders[index]
 				console.log(tender.toString())
-				display += '&nbsp&nbsp' + "clientId: " + tender.clientId + '<br/>'
-				display += '&nbsp&nbsp' + "serverId: " + tender.serverId + '<br/>'
-				display += '&nbsp&nbsp' + "createdAt: " + tender.createdAt + '<br/>'
-				display += '&nbsp&nbsp' + "totalMoney: " + tender.totalMoney.amount + '<br/>'
-				display += '&nbsp&nbsp' + "tipMoney: " + tender.tipMoney.amount + '<br/>'
+				display += '&nbsp&nbsp' + "client_id: " + tender.client_id + '<br/>'
+				display += '&nbsp&nbsp' + "server_id: " + tender.server_id + '<br/>'
+				display += '&nbsp&nbsp' + "created_at: " + tender.created_at + '<br/>'
+				display += '&nbsp&nbsp' + "total_money: " + tender.total_money.amount + '<br/>'
+				display += '&nbsp&nbsp' + "tip_money: " + tender.tip_money.amount + '<br/>'
 				display += '&nbsp&nbsp' + "type: " + tender.type + '<br/>'
-				if (tender.c) {
-					display += '&nbsp&nbsp' + "cashDetails:"  + '<br/>'
-					display += '&nbsp&nbsp&nbsp&nbsp' + "buyerTenderedMoney: " + tender.cashDetails.buyerTenderedMoney.amount + '<br/>'
-					display += '&nbsp&nbsp&nbsp&nbsp' + "changeBackMoney: " + tender.cashDetails.changeBackMoney.amount + '<br/>'
+				if (tender.cash_details) {
+					display += '&nbsp&nbsp' + "cash_details:"  + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "buyer_tendered_money: " + tender.cash_details.buyer_tendered_money.amount + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "change_back_money: " + tender.cash_details.change_back_money.amount + '<br/>'
 
-				} else if (tender.cardDetails) {
-					display += '&nbsp&nbsp' + "cardDetails:"  + '<br/>'
-					display += '&nbsp&nbsp&nbsp&nbsp' + "entryMethod: " + tender.cardDetails.entryMethod + '<br/>'
-					display += '&nbsp&nbsp&nbsp&nbsp' + "cardBrand: " + tender.cardDetails.card.cardBrand + '<br/>'
-					display += '&nbsp&nbsp&nbsp&nbsp' + "last4: " + tender.cardDetails.card.last4 + '<br/>'
+				} else if (tender.card_details) {
+					display += '&nbsp&nbsp' + "card_details:"  + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "entry_method: " + tender.card_details.entry_method + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "card_brand: " + tender.card_details.card.card_brand + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "last_4: " + tender.card_details.card.last_4 + '<br/>'
 				} 
 				display += '<br/><br/>'
 			}
@@ -213,10 +213,19 @@
 			}
 
 			if (form.elements['full-response'].checked) {
-				target += "B.full_response=true;";
+				target += "B.full_transaction_response=true;";
 			}
+			
 			if(form.elements['auto-return'].checked) {
 				target += 'B.auto_return=true;';
+			}
+
+			if(form.elements['skip-receipt'].checked) {
+				target += 'B.skip_receipt=true;';
+			}
+
+			if(form.elements['allow-split-tender'].checked) {
+				target += 'B.allow_split_tender=true;';
 			}
 
 			if(notBlank(form.elements['state'].value)) {
@@ -289,7 +298,15 @@
 			</div>
 			<div class="pure-control-group">
 				<label for="full-response">Full Response</label>
-				<input id="full-reponse" type="checkbox" name="full-response" checked>
+				<input id="full-response" type="checkbox" name="full-response" checked>
+			</div>
+			<div class="pure-control-group">
+				<label for="skip-receipt">Skip Receipt</label>
+				<input id="skip-receipt" type="checkbox" name="skip-receipt" checked>
+			</div>
+			<div class="pure-control-group">
+				<label for="allow-split-tender">Allow Split Tender</label>
+				<input id="allow-split-tender" type="checkbox" name="allow-split-tender" checked>
 			</div>
 			<div class="pure-control-group">	
 				<label for="package">Package</label>
