@@ -1,0 +1,297 @@
+<html>
+ <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/pure/0.6.0/pure-min.css">
+	<style>
+	input[type=text] {
+	  font-size: 14px;
+	}
+	.overlay {
+	  position: fixed;
+	  top: 0;
+	  bottom: 0;
+	  left: 0;
+	  right: 0;
+	  background: rgba(0, 0, 0, 0.7);
+	  transition: opacity 500ms;
+	  visibility: hidden;
+	  opacity: 0;
+	}
+	.popup {
+	  margin: 70px auto;
+	  padding: 20px;
+	  background: #fff;
+	  border-radius: 5px;
+	  width: 70%;
+	  position: relative;
+	  transition: all 5s ease-in-out;
+	}
+	.popup h3 {
+	  margin-top: 0;
+	  color: #333;
+	  font-family: Tahoma, Arial, sans-serif;
+	}
+	.popup .close {
+	  position: absolute;
+	  top: 15px;
+	  right: 15px;
+	  transition: all 200ms;
+	  font-size: 15px;
+	  font-weight: bold;
+	  text-decoration: none;
+	  color: #333;
+	}
+	.popup .close:hover {
+	  color: #06D85F;
+	}
+	.popup .content {
+	  max-height: 50%;
+	  overflow: auto;
+	  font-size: 12px;
+	}
+	</style>
+	<script>
+	function parseResponse() {
+		var qs = location.search.substr(1);
+		var qd = {};
+		qs.split("&").forEach(function(item) {
+			var s = item.split("="),
+				k = s[0],
+				v = s[1] && decodeURIComponent(s[1]);		
+			(qd[k] = qd[k] || []).push(v); //short-circuit
+		})
+		return qd;
+	}
+	
+	function showModal() {
+		modal.style.visibility = 'visible';
+		modal.style.opacity = 1;
+	}
+	
+	function hideModal() {
+		modal.style.visibility = 'hidden';
+		modal.style.opacity = 0;
+	}
+	
+	function checkResponse() {
+		var maybeResponse = parseResponse();
+		var display = '';
+		for (var key in maybeResponse) {
+			if(!notBlank(key)) {
+				continue;
+			}
+			display += key + '<br/>';
+			display += '-> ' + maybeResponse[key] + '<br/><br/>';		    
+		}
+		if (!notBlank(display)) {
+			return;
+		}
+		title.innerHTML = 'Web API Response';
+		content.innerHTML = display;
+		showModal();
+
+		close.onclick = function() {
+			hideModal();
+		}	  
+		window.onclick = function(event) {
+			if (event.target == modal) {
+				hideModal();
+			}
+		}
+	}
+	
+	function notBlank(str) {
+		return str != null && str.trim() != '';
+	}  
+	
+	function getNow() {
+		var date = new Date();
+
+		var month = date.getMonth() + 1;
+		var day = date.getDate();
+		var hour = date.getHours();
+		var min = date.getMinutes();
+		var sec = date.getSeconds();
+
+		month = (month < 10 ? "0" : "") + month;
+		day = (day < 10 ? "0" : "") + day;
+		hour = (hour < 10 ? "0" : "") + hour;
+		min = (min < 10 ? "0" : "") + min;
+		sec = (sec < 10 ? "0" : "") + sec;
+
+		return date.getFullYear() + "-" + month + "-" + day + " @ " +  hour + ":" + min + ":" + sec;
+	}
+
+	function generateLink(form) {
+		var target = 'square-commerce-v1://payment/create?data=';
+
+		var dataParameter = {};
+
+		if(notBlank(form.elements['web-callback-url'].value)) {
+			dataParameter.callback_url = form.elements['web-callback-url'].value;
+		}
+
+		if(notBlank(form.elements['client-id'].value)) {
+			dataParameter.client_id = form.elements['client-id'].value;
+		}
+
+		if(notBlank(form.elements['api-version'].value)) {
+			dataParameter.version = form.elements['api-version'].value;
+		}
+
+		var amount_money = {}
+		if(notBlank(form.elements['total-amount'].value)) {
+			amount_money.amount = form.elements['total-amount'].value;
+		}
+
+		if(notBlank(form.elements['currency-code'].value)) {
+			amount_money.currency_code = form.elements['currency-code'].value;
+		}
+
+		dataParameter.amount_money = amount_money;
+
+		if(notBlank(form.elements['note'].value)) {
+			dataParameter.notes = form.elements['note'].value;
+		}
+	
+		options = {};
+
+		var all_tender_types = form.elements['tender-types'];
+		console.log("All tender types:" + all_tender_types);
+		var selected_tender_types = [];
+		for (var i = 0; i < all_tender_types.length; i++) {
+			console.log("Tender type " + i + ": " + all_tender_types[i].value);
+			if (all_tender_types[i].checked) {
+				selected_tender_types[selected_tender_types.length] = all_tender_types[i].value;
+			}
+		}
+
+		options.tender_types = selected_tender_types;
+
+		var all_options = form.elements['options'];
+		for (var i = 0; i < all_options.length; i++) {
+			if (all_options[i].checked) {
+				options[all_options[i].value] = true;
+			}
+		}
+
+		dataParameter.options = options;
+
+		if(notBlank(form.elements['state'].value)) {
+			dataParameter.state = form.elements['state'].value;
+		}
+
+		if(notBlank(form.elements['location-id'].value)) {
+			dataParameter.merchant_id = form.elements['location-id'].value;
+		}
+
+		if(notBlank(form.elements['customer-id'].value)) {
+			dataParameter.customer_id = form.elements['customer-id'].value;
+		}
+
+		target += encodeURIComponent(JSON.stringify(dataParameter));
+
+		document.getElementById('gen-link-layout').style.visibility = 'visible';
+		document.getElementById('gen-link').href = target;
+		document.getElementById('gen-timestamp').innerHTML = getNow();
+	}
+	</script>
+ </head>	
+ <body width="100%" onload="checkResponse();">
+  <form class="pure-form pure-form-aligned">
+	  <fieldset>
+		<div class="pure-control-group">
+			<label for="total-amount">Transaction Amount (cents)</label>
+			<input id="total-amount" type="text" value="100" class="pure-input-2-3">
+		</div>
+		<div class="pure-control-group">	
+		   <label for="currency-code">Currency Code</label>
+		   <input id="currency-code" type="text" value="USD" class="pure-input-2-3">
+		</div>
+		<div class="pure-control-group">	
+		   <label for="note">Note (optional)</label>
+		   <input id="note" type="text" value="Moar Gravy please." class="pure-input-2-3">
+		</div>
+		<div class="pure-controls">
+			Tender Types<br/>
+			<label for="tt-card" class="pure-checkbox">
+				<input id="tt-card" type="checkbox" name="tender-types" value="CARD_FROM_READER" checked>&nbsp;Card From Reader
+			</label>
+			<label for="tt-card" class="pure-checkbox">
+				<input id="tt-card" type="checkbox" name="tender-types" value="KEYED_IN_CARD" checked>&nbsp;Keyed In Card
+			</label>
+			<label for="tt-cof" class="pure-checkbox">
+				<input id="tt-cof" type="checkbox" name="tender-types" value="CARD_ON_FILE" checked>&nbsp;Card On File
+			</label>
+			<label for="tt-cash" class="pure-checkbox">
+				<input id="tt-cash" type="checkbox" name="tender-types" value="CASH" checked>&nbsp;Cash
+			</label>
+			<label for="tt-other" class="pure-checkbox">
+				<input id="tt-other" type="checkbox" name="tender-types" value="OTHER" checked>&nbsp;Other
+			</label>
+			<label for="tt-gift-card" class="pure-checkbox">
+				<input id="tt-gift-card" type="checkbox" name="tender-types" value="SQUARE_GIFT_CARD" checked>&nbsp;Square Gift Card
+			</label>
+		</div>
+		<div class="pure-control-group">	
+			<label for="client-id">Client ID</label>
+			<input id="client-id" type="text" value="sq0ids-8UjZxrQoAbC3N56CcJo_CQ" class="pure-input-2-3"> <!-- Default: CafAPI Staging -->
+		</div>	
+		<div class="pure-control-group">	
+			<label for="web-callback-url">Web Callback URL</label>
+			<input id="web-callback-url" type="text" value="https://ios-web-api-test.herokuapp.com/v2.0/index.html" class="pure-input-2-3">
+		</div>	
+		<div class="pure-control-group">	
+			<label for="api-version">API Version</label>
+			<input id="api-version" type="text" value="2.0" class="pure-input-2-3">
+		</div>		
+		<div class="pure-controls">
+			Options<br/>
+			<label for="options-autoreturn" class="pure-checkbox">
+				<input id="options-autoreturn" type="checkbox" name="options" value="auto_return" checked>&nbsp;Auto-Return
+			</label>
+			<label for="options-receipt" class="pure-checkbox">
+				<input id="options-receipt" type="checkbox" name="options" value="skip_receipt" checked>&nbsp;Skip Receipt
+			</label>
+			<label for="options-receipt" class="pure-checkbox">
+				<input id="options-receipt" type="checkbox" name="options" value="allow_split_tender" checked>&nbsp;Allow Split Tender
+			</label>
+			<label for="options-receipt" class="pure-checkbox">
+				<input id="options-receipt" type="checkbox" name="options" value="full_transaction_response" checked>&nbsp;Full Transaction Response
+			</label>
+		</div>
+		<div class="pure-control-group">	
+			<label for="state">State</label>
+			<input id="state" type="text" value="fries-against-humanity" class="pure-input-2-3">
+		</div>
+		<div class="pure-control-group">	
+			<label for="location-id">Location ID (optional)</label>
+			<input id="location-id" type="text" value="" class="pure-input-2-3">
+		</div>	
+		<div class="pure-control-group">	
+			<label for="customer-id">Customer ID (optional)</label>
+			<input id="customer-id" type="text" value="" class="pure-input-2-3">
+		</div>	
+	  </fieldset>
+	  <button onclick="generateLink(this.form); return false;" class="pure-button pure-input-1 pure-button-primary">Generate Link</button>
+  </form>
+  <div id="gen-link-layout" style="visibility:hidden;text-align:center">Link generated at <span id="gen-timestamp"></span>
+  <p><a id="gen-link">Click me to launch Web API!</a></p>
+  </div>
+
+<div id="popup-container" class="overlay">
+	<div class="popup">
+		<h3 id="popup-title">Here i am</h2>
+		<span id="close" class="close">&times;</span>
+		<div id="popup-content" class="content"></div>
+	</div>
+</div>
+<script>
+var modal = document.getElementById('popup-container');
+var title = document.getElementById('popup-title');
+var content = document.getElementById('popup-content');
+var close = document.getElementById('close');
+</script>
+  </body>
+</html>
