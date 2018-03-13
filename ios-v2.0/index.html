@@ -58,22 +58,22 @@
 		qs.split("&").forEach(function(item) {
 			var s = item.split("="),
 				k = s[0],
-				v = s[1] && decodeURIComponent(s[1]);		
+				v = s[1] && decodeURIComponent(s[1]);
 			(qd[k] = qd[k] || []).push(v); //short-circuit
 		})
 		return qd;
 	}
-	
+
 	function showModal() {
 		modal.style.visibility = 'visible';
 		modal.style.opacity = 1;
 	}
-	
+
 	function hideModal() {
 		modal.style.visibility = 'hidden';
 		modal.style.opacity = 0;
 	}
-	
+
 	function checkResponse() {
 		var maybeResponse = parseResponse();
 		var display = '';
@@ -82,7 +82,7 @@
 				continue;
 			}
 			display += key + '<br/>';
-			display += '-> ' + maybeResponse[key] + '<br/><br/>';		    
+			display += '-> ' + maybeResponse[key] + '<br/><br/>';
 		}
 		if (!notBlank(display)) {
 			return;
@@ -93,18 +93,18 @@
 
 		close.onclick = function() {
 			hideModal();
-		}	  
+		}
 		window.onclick = function(event) {
 			if (event.target == modal) {
 				hideModal();
 			}
 		}
 	}
-	
+
 	function notBlank(str) {
 		return str != null && str.trim() != '';
-	}  
-	
+	}
+
 	function getNow() {
 		var date = new Date();
 
@@ -154,7 +154,7 @@
 		if(notBlank(form.elements['note'].value)) {
 			dataParameter.notes = form.elements['note'].value;
 		}
-	
+
 		options = {};
 
 		var all_tender_types = form.elements['tender-types'];
@@ -167,7 +167,7 @@
 			}
 		}
 
-		options.supported_tender_types = selected_tender_types;
+		options.tender_types = selected_tender_types;
 
 		var all_options = form.elements['options'];
 		for (var i = 0; i < all_options.length; i++) {
@@ -197,7 +197,7 @@
 		document.getElementById('gen-timestamp').innerHTML = getNow();
 	}
 	</script>
- </head>	
+ </head>
  <body width="100%" onload="checkResponse();">
   <form class="pure-form pure-form-aligned">
 	  <fieldset>
@@ -205,18 +205,21 @@
 			<label for="total-amount">Transaction Amount (cents)</label>
 			<input id="total-amount" type="text" value="100" class="pure-input-2-3">
 		</div>
-		<div class="pure-control-group">	
+		<div class="pure-control-group">
 		   <label for="currency-code">Currency Code</label>
 		   <input id="currency-code" type="text" value="USD" class="pure-input-2-3">
 		</div>
-		<div class="pure-control-group">	
+		<div class="pure-control-group">
 		   <label for="note">Note (optional)</label>
 		   <input id="note" type="text" value="Moar Gravy please." class="pure-input-2-3">
 		</div>
 		<div class="pure-controls">
 			Tender Types<br/>
 			<label for="tt-card" class="pure-checkbox">
-				<input id="tt-card" type="checkbox" name="tender-types" value="CREDIT_CARD" checked>&nbsp;Credit Card
+				<input id="tt-card-reader" type="checkbox" name="tender-types" value="CARD_FROM_READER" checked>&nbsp;Card From Reader
+			</label>
+			<label for="tt-card" class="pure-checkbox">
+				<input id="tt-keyed-card" type="checkbox" name="tender-types" value="KEYED_IN_CARD" checked>&nbsp;Keyed In Card
 			</label>
 			<label for="tt-cof" class="pure-checkbox">
 				<input id="tt-cof" type="checkbox" name="tender-types" value="CARD_ON_FILE" checked>&nbsp;Card On File
@@ -231,42 +234,45 @@
 				<input id="tt-gift-card" type="checkbox" name="tender-types" value="SQUARE_GIFT_CARD" checked>&nbsp;Square Gift Card
 			</label>
 		</div>
-		<div class="pure-control-group">	
+		<div class="pure-control-group">
 			<label for="client-id">Client ID</label>
 			<input id="client-id" type="text" value="sq0ids-8UjZxrQoAbC3N56CcJo_CQ" class="pure-input-2-3"> <!-- Default: CafAPI Staging -->
-		</div>	
-		<div class="pure-control-group">	
+		</div>
+		<div class="pure-control-group">
 			<label for="web-callback-url">Web Callback URL</label>
-			<input id="web-callback-url" type="text" value="https://ios-web-api-test.herokuapp.com/v1.3/index.html" class="pure-input-2-3">
-		</div>	
-		<div class="pure-control-group">	
+			<input id="web-callback-url" type="text" value="https://ios-web-api-test.herokuapp.com/v2.0/index.html" class="pure-input-2-3">
+		</div>
+		<div class="pure-control-group">
 			<label for="api-version">API Version</label>
-			<input id="api-version" type="text" value="1.3" class="pure-input-2-3">
-		</div>		
+			<input id="api-version" type="text" value="2.0" class="pure-input-2-3">
+		</div>
 		<div class="pure-controls">
 			Options<br/>
-			<label for="options-fees" class="pure-checkbox">
-				<input id="options-fees" type="checkbox" name="options" value="clear_default_fees" checked>&nbsp;Clear Default Fees
-			</label>
 			<label for="options-autoreturn" class="pure-checkbox">
 				<input id="options-autoreturn" type="checkbox" name="options" value="auto_return" checked>&nbsp;Auto-Return
 			</label>
 			<label for="options-receipt" class="pure-checkbox">
-				<input id="options-receipt" type="checkbox" name="options" value="skip_receipt" checked>&nbsp;Skip Receipt
+				<input id="options-skip-receipt" type="checkbox" name="options" value="skip_receipt" checked>&nbsp;Skip Receipt
+			</label>
+			<label for="options-receipt" class="pure-checkbox">
+				<input id="options-split" type="checkbox" name="options" value="allow_split_tender" checked>&nbsp;Allow Split Tender
+			</label>
+			<label for="options-receipt" class="pure-checkbox">
+				<input id="options-full-transaction" type="checkbox" name="options" value="full_transaction_response" checked>&nbsp;Full Transaction Response
 			</label>
 		</div>
-		<div class="pure-control-group">	
+		<div class="pure-control-group">
 			<label for="state">State</label>
 			<input id="state" type="text" value="fries-against-humanity" class="pure-input-2-3">
 		</div>
-		<div class="pure-control-group">	
+		<div class="pure-control-group">
 			<label for="location-id">Location ID (optional)</label>
 			<input id="location-id" type="text" value="" class="pure-input-2-3">
-		</div>	
-		<div class="pure-control-group">	
+		</div>
+		<div class="pure-control-group">
 			<label for="customer-id">Customer ID (optional)</label>
 			<input id="customer-id" type="text" value="" class="pure-input-2-3">
-		</div>	
+		</div>
 	  </fieldset>
 	  <button onclick="generateLink(this.form); return false;" class="pure-button pure-input-1 pure-button-primary">Generate Link</button>
   </form>
