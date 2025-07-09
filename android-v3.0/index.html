@@ -1,0 +1,362 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/pure/0.6.0/pure-min.css">
+	<style>
+		input[type=text] {
+			font-size: 14px;
+		}
+		.overlay {
+			position: fixed;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: rgba(0, 0, 0, 0.7);
+			transition: opacity 500ms;
+			visibility: hidden;
+			opacity: 0;
+		}
+		.popup {
+			margin: 70px auto;
+			padding: 20px;
+			background: #fff;
+			border-radius: 5px;
+			width: 70%;
+			position: relative;
+			transition: all 5s ease-in-out;
+		}
+		.popup h3 {
+			margin-top: 0;
+			color: #333;
+			font-family: Tahoma, Arial, sans-serif;
+		}
+		.popup .close {
+			position: absolute;
+			top: 15px;
+			right: 15px;
+			transition: all 200ms;
+			font-size: 15px;
+			font-weight: bold;
+			text-decoration: none;
+			color: #333;
+		}
+		.popup .close:hover {
+			color: #06D85F;
+		}
+		.popup .content {
+			max-height: 50%;
+			overflow: auto;
+			font-size: 12px;
+		}
+	</style>
+	<script>
+		function parseResponse() {
+			var qs = location.search.substr(1);
+			var qd = {};
+			qs.split("&").forEach(function(item) {
+				var s = item.split("="),
+				k = s[0],
+				v = s[1] && decodeURIComponent(s[1]);
+		    (qd[k] = qd[k] || []).push(v); //short-circuit
+		})
+			return qd;
+		}
+
+		function showModal() {
+			modal.style.visibility = 'visible';
+			modal.style.opacity = 1;
+		}
+
+		function hideModal() {
+			modal.style.visibility = 'hidden';
+			modal.style.opacity = 0;
+		}
+
+		function checkResponse() {
+			var maybeResponse = parseResponse();
+			var response = '';
+			for (var key in maybeResponse) {
+				if(!notBlank(key)) {
+					continue;
+				}
+				if (key == "transaction") {
+					var transactionData = JSON.parse(maybeResponse[key])
+					response += createTransactionResponseHtml(transactionData)
+				}
+				response += key + '<br/>';
+				response += '-> ' + maybeResponse[key] + '<br/><br/>';
+
+			}
+			if (!notBlank(response)) {
+				return;
+			}
+			title.innerHTML = 'Web API Response';
+			content.innerHTML = response;
+			showModal();
+
+			close.onclick = function() {
+				hideModal();
+			}
+			window.onclick = function(event) {
+				if (event.target == modal) {
+					hideModal();
+				}
+			}
+		}
+
+		function createTransactionResponseHtml(transactionData) {
+			var display = ''
+			display += 'Transaction Result<br/><br/>';
+			display += "client_id: " + transactionData.client_id + '<br/>'
+			display += "server_id: " + transactionData.server_id + '<br/>'
+			display += "location_id: " + transactionData.location_id + '<br/>'
+			display += "created_at: "  + transactionData.created_at + '<br/>'
+			display += "order:" + '<br/>'
+			display += '&nbsp&nbsp' + "total_money: " + transactionData.order.total_money.amount + '<br/>'
+			display += '&nbsp&nbsp' + "total_tip_money: " + transactionData.order.total_tip_money.amount + '<br/>'
+			display += '&nbsp&nbsp' + "total_tax_money: " + transactionData.order.total_tax_money.amount + '<br/>'
+			display += "tenders:" + '<br/>'
+
+			for (var index in transactionData.tenders) {
+				var tender = transactionData.tenders[index]
+				console.log(tender.toString())
+				display += '&nbsp&nbsp' + "client_id: " + tender.client_id + '<br/>'
+				display += '&nbsp&nbsp' + "server_id: " + tender.server_id + '<br/>'
+				display += '&nbsp&nbsp' + "created_at: " + tender.created_at + '<br/>'
+				display += '&nbsp&nbsp' + "total_money: " + tender.total_money.amount + '<br/>'
+				display += '&nbsp&nbsp' + "tip_money: " + tender.tip_money.amount + '<br/>'
+				display += '&nbsp&nbsp' + "type: " + tender.type + '<br/>'
+				if (tender.cash_details) {
+					display += '&nbsp&nbsp' + "cash_details:"  + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "buyer_tendered_money: " + tender.cash_details.buyer_tendered_money.amount + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "change_back_money: " + tender.cash_details.change_back_money.amount + '<br/>'
+
+				} else if (tender.card_details) {
+					display += '&nbsp&nbsp' + "card_details:"  + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "entry_method: " + tender.card_details.entry_method + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "card_brand: " + tender.card_details.card.card_brand + '<br/>'
+					display += '&nbsp&nbsp&nbsp&nbsp' + "last_4: " + tender.card_details.card.last_4 + '<br/>'
+				}
+				display += '<br/><br/>'
+			}
+			return display
+		}
+
+		function notBlank(str) {
+			return str != null && str.trim() != '';
+		}
+
+		function getNow() {
+			var date = new Date();
+
+			var month = date.getMonth() + 1;
+			var day = date.getDate();
+			var hour = date.getHours();
+			var min = date.getMinutes();
+			var sec = date.getSeconds();
+
+			month = (month < 10 ? "0" : "") + month;
+			day = (day < 10 ? "0" : "") + day;
+			hour = (hour < 10 ? "0" : "") + hour;
+			min = (min < 10 ? "0" : "") + min;
+			sec = (sec < 10 ? "0" : "") + sec;
+
+			return date.getFullYear() + "-" + month + "-" + day + " @ " +  hour + ":" + min + ":" + sec;
+		}
+
+		function generateLink(form) {
+			var target = 'intent:#Intent;action=com.squareup.pos.action.CHARGE;';
+
+			if(notBlank(form.elements['package'].value)) {
+				target += 'package=' + form.elements['package'].value + ';';
+			}
+
+			if(notBlank(form.elements['browser-fallback-url'].value)) {
+				target += 'S.browser_fallback_url=' + form.elements['browser-fallback-url'].value + ';';
+			}
+
+			if(notBlank(form.elements['web-callback-uri'].value)) {
+				target += 'S.callback_url=' + form.elements['web-callback-uri'].value + ';';
+			}
+
+			if(notBlank(form.elements['client-id'].value)) {
+				target += 'S.client_id=' + form.elements['client-id'].value + ';';
+			}
+
+			if(notBlank(form.elements['api-version'].value)) {
+				target += 'S.api_version=' + form.elements['api-version'].value + ';';
+			}
+
+			if(notBlank(form.elements['total-amount'].value)) {
+				target += 'i.amount=' + form.elements['total-amount'].value + ';';
+			}
+
+			if(notBlank(form.elements['currency-code'].value)) {
+				target += 'S.currency_code=' + form.elements['currency-code'].value + ';';
+			}
+
+			if(notBlank(form.elements['note'].value)) {
+				target += 'S.note=' + form.elements['note'].value + ';';
+			}
+
+			var all_tender_types = form.elements['tender-types'];
+			var selected_tender_types = [];
+			for (var i = 0; i < all_tender_types.length; i++) {
+				if (all_tender_types[i].checked) {
+					selected_tender_types[selected_tender_types.length] = all_tender_types[i].value;
+				}
+			}
+			if (selected_tender_types.length != 0) {
+				target += 'S.tender_types=' + selected_tender_types.join() + ';';
+			}
+
+			if (form.elements['full-response'].checked) {
+				target += "B.full_transaction_response=true;";
+			}
+
+			if(form.elements['auto-return'].checked) {
+				target += 'B.auto_return=true;';
+			}
+
+			if(form.elements['skip-receipt'].checked) {
+				target += 'B.skip_receipt=true;';
+			}
+
+			if(form.elements['allow-split-tender'].checked) {
+				target += 'B.allow_split_tender=true;';
+			}
+
+			if(notBlank(form.elements['state'].value)) {
+				target += 'S.state=' + form.elements['state'].value + ';';
+			}
+
+			if(notBlank(form.elements['location-id'].value)) {
+				target += 'S.location_id=' + form.elements['location-id'].value + ';';
+			}
+
+			if(notBlank(form.elements['customer-id'].value)) {
+				target += 'S.customer_id=' + form.elements['customer-id'].value + ';';
+			}
+
+			target += 'end';
+
+			document.getElementById('gen-link-layout').style.visibility = 'visible';
+			document.getElementById('gen-link').href = target;
+			document.getElementById('gen-timestamp').innerHTML = getNow();
+		}
+	</script>
+</head>
+<body width="100%" onload="checkResponse();">
+	<form class="pure-form pure-form-aligned">
+		<fieldset>
+			<div class="pure-control-group">
+				<label for="total-amount">Transaction Amount (cents)</label>
+				<input id="total-amount" type="text" value="100" class="pure-input-2-3">
+			</div>
+			<div class="pure-control-group">
+				<label for="currency-code">Currency Code</label>
+				<input id="currency-code" type="text" value="USD" class="pure-input-2-3">
+			</div>
+			<div class="pure-control-group">
+				<label for="note">Note (optional)</label>
+				<input id="note" type="text" value="Moar Gravy please." class="pure-input-2-3">
+			</div>
+			<div class="pure-controls">
+				Tender Types<br/>
+				<label for="tt-card-from-reader" class="pure-checkbox">
+					<input id="tt-card-from-reader" type="checkbox" name="tender-types" value="card_from_reader" checked>&nbsp;Card From Reader
+				</label>
+				<label for="tt-keyed-in-card" class="pure-checkbox">
+					<input id="tt-keyed-in-card" type="checkbox" name="tender-types" value="keyed_in_card" checked>&nbsp;Keyed-in Card
+				</label>
+				<label for="tt-gift-card" class="pure-checkbox">
+					<input id="tt-gift-card" type="checkbox" name="tender-types" value="square_gift_card" checked>&nbsp;Square Gift Card
+				</label>
+				<label for="tt-cof" class="pure-checkbox">
+					<input id="tt-cof" type="checkbox" name="tender-types" value="card_on_file" checked>&nbsp;Card On File
+				</label>
+				<label for="tt-cash" class="pure-checkbox">
+					<input id="tt-cash" type="checkbox" name="tender-types" value="cash" checked>&nbsp;Cash
+				</label>
+				<label for="tt-other" class="pure-checkbox">
+					<input id="tt-other" type="checkbox" name="tender-types" value="other" checked>&nbsp;Other
+				</label>
+			</div>
+			<div class="pure-control-group">
+				<label for="client-id">Client ID</label>
+				<input id="client-id" type="text" value="sq0ids-0EpvTwZMslYjXyxGBHZ8hw" class="pure-input-2-3">
+			</div>
+			<div class="pure-control-group">
+				<label for="browser-fallback-url">Browser Fallback URL</label>
+				<input id="browser-fallback-url" type="text" value="https://tomganley.github.io/xp-web-api-test/android-v3.0/index.html" class="pure-input-2-3">
+			</div>
+			<div class="pure-control-group">
+				<label for="web-callback-uri">Web Callback URI</label>
+				<input id="web-callback-uri" type="text" value="https://tomganley.github.io/xp-web-api-test/android-v3.0/index.html" class="pure-input-2-3">
+			</div>
+			<div class="pure-control-group">
+				<label for="full-response">Full Response</label>
+				<input id="full-response" type="checkbox" name="full-response" checked>
+			</div>
+			<div class="pure-control-group">
+				<label for="skip-receipt">Skip Receipt</label>
+				<input id="skip-receipt" type="checkbox" name="skip-receipt" checked>
+			</div>
+			<div class="pure-control-group">
+				<label for="allow-split-tender">Allow Split Tender</label>
+				<input id="allow-split-tender" type="checkbox" name="allow-split-tender" checked>
+			</div>
+			<div class="pure-control-group">
+				<label for="package">Package</label>
+				<select name="package" class="pure-input-2-3">
+					<option value="com.squareup.development">com.squareup.development</option>
+					<option value="com.squareup.eng">com.squareup.eng</option>
+					<option value="com.squareup">com.squareup</option>
+					<option value="com.squareup.beta">com.squareup.beta</option>
+					<option value="">[no package]</option>
+				</select>
+			</div>
+			<div class="pure-control-group">
+				<label for="api-version">API Version</label>
+				<input id="api-version" type="text" value="v3.0" class="pure-input-2-3">
+			</div>
+			<div class="pure-control-group">
+				<label for="auto-return">Enable Auto Return</label>
+				<input id="auto-return" type="checkbox" name="auto-return" checked>
+			</div>
+			<div class="pure-control-group">
+				<label for="state">State</label>
+				<input id="state" type="text" value="fries-against-humanity" class="pure-input-2-3">
+			</div>
+			<div class="pure-control-group">
+				<label for="location-id">Location ID (optional)</label>
+				<input id="location-id" type="text" value="" class="pure-input-2-3">
+			</div>
+			<div class="pure-control-group">
+				<label for="customer-id">Customer ID (optional)</label>
+				<input id="customer-id" type="text" value="" class="pure-input-2-3">
+			</div>
+		</fieldset>
+		<button onclick="generateLink(this.form); return false;" class="pure-button pure-input-1 pure-button-primary">Generate Link</button>
+	</form>
+	<div id="gen-link-layout" style="visibility:hidden;text-align:center">Link generated at <span id="gen-timestamp"></span>
+		<p><a id="gen-link">Click me to launch Web API!</a></p>
+	</div>
+
+	<div id="popup-container" class="overlay">
+		<div class="popup">
+			<h3 id="popup-title">Here i am</h2>
+				<span id="close" class="close">&times;</span>
+				<div id="popup-content" class="content"></div>
+			</div>
+		</div>
+		<script>
+			var modal = document.getElementById('popup-container');
+			var title = document.getElementById('popup-title');
+			var content = document.getElementById('popup-content');
+			var close = document.getElementById('close');
+		</script>
+	</body>
+	</html>
